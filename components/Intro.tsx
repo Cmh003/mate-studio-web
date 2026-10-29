@@ -8,16 +8,21 @@ export default function Intro() {
   const [phase, setPhase] = useState<"loading" | "leaving" | "gone">("loading");
 
   useEffect(() => {
-    const id = window.setInterval(() => setPct((p) => Math.min(100, p + 7)), 60);
+    // Basado en el tiempo real, no en ticks: así dura lo mismo aunque el equipo vaya cargado
+    const start = performance.now();
+    const id = window.setInterval(() => setPct(Math.min(100, Math.round(((performance.now() - start) / 1300) * 100))), 50);
     return () => window.clearInterval(id);
   }, []);
 
   useEffect(() => {
-    if (pct < 100 || phase !== "loading") return;
-    setPhase("leaving");
+    if (pct >= 100 && phase === "loading") setPhase("leaving");
+  }, [pct, phase]);
+
+  useEffect(() => {
+    if (phase !== "leaving") return;
     const id = window.setTimeout(() => setPhase("gone"), 1000);
     return () => window.clearTimeout(id);
-  }, [pct, phase]);
+  }, [phase]);
 
   if (phase === "gone") return null;
   return (

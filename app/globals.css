@@ -68,7 +68,7 @@ a:hover { color: var(--lime); }
 
 /* ===== Intro ===== */
 .intro { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: flex; align-items: center; justify-content: center; }
-.intro-out { animation: introOut 0.8s 0.15s ease forwards; }
+.intro-out { animation: introOut 0.8s 0.15s ease forwards; pointer-events: none; }
 .intro-dot { width: 18px; height: 18px; border-radius: 99px; background: var(--lime); }
 .intro-pct { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--muted-2); }
 

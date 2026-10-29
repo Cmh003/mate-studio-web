@@ -2,6 +2,7 @@ import BrandDraw from "@/components/BrandDraw";
 import Constellation from "@/components/Constellation";
 import Contact from "@/components/Contact";
 import Cursor from "@/components/Cursor";
+import DemoPicker from "@/components/DemoPicker";
 import EasterEgg from "@/components/EasterEgg";
 import Intro from "@/components/Intro";
 import Stage from "@/components/Stage";
@@ -52,6 +53,7 @@ export default function Home() {
         </div>
 
         <BrandDraw />
+        <DemoPicker />
         <Constellation />
         <Contact />
       </main>
