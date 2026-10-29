@@ -63,7 +63,7 @@ a:hover { color: var(--lime); }
 .pin { animation: fadeIn 0.8s 0.35s var(--ease) both; }
 
 @supports (animation-timeline: view()) {
-  .reveal { animation: up linear both; animation-timeline: view(); animation-range: entry 30% cover 50%; }
+  .reveal { animation: up linear both; animation-timeline: view(); animation-range: entry 5% entry 60%; }
 }
 
 /* ===== Intro ===== */
@@ -150,7 +150,7 @@ a:hover { color: var(--lime); }
 .scroll-hint { display: flex; align-items: center; gap: 10px; }
 .scroll-hint .blink { width: 6px; height: 6px; border-radius: 9px; background: var(--lime); animation: blink 1s steps(1) infinite; }
 .chapter { align-items: flex-end; }
-.chapter-text { display: flex; flex-direction: column; gap: 16px; max-width: 560px; text-shadow: 0 2px 28px rgba(12, 12, 14, 0.95); }
+.chapter-text { display: flex; flex-direction: column; gap: 16px; max-width: 560px; }
 
 .section { position: relative; padding: 110px var(--pad); background: var(--bg); }
 .head { display: flex; flex-direction: column; gap: 14px; max-width: 640px; }

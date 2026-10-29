@@ -197,7 +197,7 @@ void main(){
   vec3 bg = vec3(0.0012);
   vec3 col = bg;
 
-  float floorY = O.y - 1.32;
+  float floorY = O.y - 1.55;
   float tf = rd.y < 0.0 ? (floorY - ro.y) / rd.y : 1e9;
 
   // Raymarching con registro del punto más cercano, para suavizar el contorno
@@ -229,9 +229,9 @@ void main(){
 
   if (hit > 0.5 && d < tf) {
     col = shade(p, rd, mat, dpw);
-  } else if (bestR < 1.5 && bestT < tf) {
+  } else if (bestR < 0.8 && bestT < tf) {
     // Borde: mezcla parcial del objeto con el fondo (antialiasing)
-    float cov = 1.0 - smoothstep(0.0, 1.5, bestR);
+    float cov = 1.0 - smoothstep(0.0, 0.8, bestR);
     vec3 pe = ro + rd * bestT;
     col = mix(col, shade(pe, rd, bestM, dpw), cov);
   }

@@ -56,6 +56,8 @@ export default function Scene3D() {
 
     // Resolución adaptativa: empieza nítida (hasta 2×) y baja sola si el equipo no llega a ~50 fps
     const maxScale = Math.min(window.devicePixelRatio || 1, 2);
+    // Nunca por debajo de 1 píxel de render por píxel de pantalla: así no se ve borroso
+    const minScale = Math.min(1, maxScale);
     let scale = maxScale;
     let frames = 0;
     let acc = 0;
@@ -92,7 +94,7 @@ export default function Scene3D() {
         frames++;
         if (frames >= 30) {
           const avg = acc / frames;
-          if (avg > 22 && scale > 0.6) scale = Math.max(0.6, scale * 0.85);
+          if (avg > 28 && scale > minScale) scale = Math.max(minScale, scale * 0.9);
           else if (avg < 14 && scale < maxScale) scale = Math.min(maxScale, scale * 1.1);
           frames = 0;
           acc = 0;
