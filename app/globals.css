@@ -150,7 +150,7 @@ a:hover { color: var(--lime); }
 .scroll-hint { display: flex; align-items: center; gap: 10px; }
 .scroll-hint .blink { width: 6px; height: 6px; border-radius: 9px; background: var(--lime); animation: blink 1s steps(1) infinite; }
 .chapter { align-items: flex-end; }
-.chapter-text { display: flex; flex-direction: column; gap: 16px; max-width: 560px; }
+.chapter-text { display: flex; flex-direction: column; gap: 16px; max-width: 560px; text-shadow: 0 2px 28px rgba(12, 12, 14, 0.95); }
 
 .section { position: relative; padding: 110px var(--pad); background: var(--bg); }
 .head { display: flex; flex-direction: column; gap: 14px; max-width: 640px; }

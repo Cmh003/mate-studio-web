@@ -52,7 +52,14 @@ export default function Scene3D() {
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
 
     const U = (n: string) => gl.getUniformLocation(program, n);
-    const u = { r: U("r"), t: U("t"), s: U("s"), m: U("m"), ox: U("ox"), hd: U("hd") };
+    const u = { r: U("r"), t: U("t"), s: U("s"), m: U("m"), ox: U("ox"), hd: U("hd"), zoom: U("zoom"), sy: U("sy") };
+
+    // Resolución adaptativa: empieza nítida (hasta 2×) y baja sola si el equipo no llega a ~50 fps
+    const maxScale = Math.min(window.devicePixelRatio || 1, 2);
+    let scale = maxScale;
+    let frames = 0;
+    let acc = 0;
+    let last = performance.now();
 
     const reduced = prefersReducedMotion();
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
@@ -78,9 +85,21 @@ export default function Scene3D() {
       // Fuera de la historia, o con una ficha de proyecto abierta, no hace falta pintar
       if (window.scrollY > vh * 6.2 || document.body.dataset.overlay || document.hidden) return;
 
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
-      const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
-      const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
+      const dt = now - last;
+      last = now;
+      if (dt < 200) {
+        acc += dt;
+        frames++;
+        if (frames >= 30) {
+          const avg = acc / frames;
+          if (avg > 22 && scale > 0.6) scale = Math.max(0.6, scale * 0.85);
+          else if (avg < 14 && scale < maxScale) scale = Math.min(maxScale, scale * 1.1);
+          frames = 0;
+          acc = 0;
+        }
+      }
+      const w = Math.max(1, Math.floor(canvas.clientWidth * scale));
+      const h = Math.max(1, Math.floor(canvas.clientHeight * scale));
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
@@ -99,7 +118,12 @@ export default function Scene3D() {
       gl.uniform1f(u.t, time);
       gl.uniform1f(u.s, progress);
       gl.uniform2f(u.m, mouse.x, mouse.y);
-      gl.uniform1f(u.ox, aspect > 1.15 ? Math.min(1.5, (aspect - 1) * 1.4) : 0);
+      // Encuadre: en horizontal el logo va a la derecha del texto; en vertical
+      // se centra, se aleja un poco y sube para dejar sitio al texto de abajo.
+      const landscape = aspect > 1.15;
+      gl.uniform1f(u.ox, landscape ? Math.min(1.5, (aspect - 1) * 1.4) : 0);
+      gl.uniform1f(u.zoom, landscape ? 1 : aspect < 0.8 ? 1.4 : 1.15);
+      gl.uniform1f(u.sy, landscape ? 0 : aspect < 0.8 ? 0.42 : 0.2);
       gl.uniform1f(u.hd, hidden);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     };

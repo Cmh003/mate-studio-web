@@ -18,6 +18,8 @@ uniform float s;
 uniform vec2 m;
 uniform float ox;
 uniform float hd;
+uniform float zoom;
+uniform float sy;
 
 const float PI = 3.14159265;
 const float TR = 0.19;      // grosor del trazo
@@ -116,8 +118,58 @@ float ao(vec3 p, vec3 n){
   return clamp(1.0 - 2.2 * o, 0.0, 1.0);
 }
 
+const vec3 LIME = vec3(0.776, 0.957, 0.196);
+const vec3 KEY = vec3(-0.22, 0.95, 0.55);
+
+// Estudio fotográfico falso para los reflejos: una caja de luz grande arriba a la
+// izquierda, una tira de contraluz a la derecha y el suelo oscuro.
+vec3 env(vec3 d){
+  float top = smoothstep(0.1, 0.95, d.y);
+  float box = smoothstep(0.72, 0.98, dot(d, normalize(vec3(-0.55, 0.65, 0.55))));
+  float rim = smoothstep(0.88, 0.995, dot(d, normalize(vec3(0.95, 0.2, -0.25))));
+  float flr = 1.0 - smoothstep(-0.4, 0.0, d.y);
+  vec3 c = vec3(0.010) + vec3(0.06) * top;
+  c += vec3(1.25, 1.22, 1.15) * box;
+  c += vec3(0.55, 0.6, 0.62) * rim;
+  c *= 1.0 - 0.8 * flr;
+  return c;
+}
+
+vec3 shade(vec3 p, vec3 rd, float mat, vec3 dpw){
+  vec3 L = normalize(KEY);
+  vec3 n = nrm(p);
+  vec3 v = -rd;
+  float ndv = max(dot(n, v), 0.0);
+  float di = max(dot(n, L), 0.0);
+  float sh = shadow(p + n * 0.004, L);
+  float oc = ao(p, n);
+  vec3 h = normalize(L + v);
+  vec3 rf = reflect(rd, n);
+  float fres = 0.04 + 0.96 * pow(1.0 - ndv, 5.0);
+  vec3 toD = dpw - p; float dd = length(toD);
+  float glow = (1.0 - HD) * max(dot(n, toD / dd), 0.0) / (1.0 + 7.0 * dd * dd);
+  vec3 col;
+  if (mat < 1.5) {
+    // Cerámica blanca satinada
+    vec3 alb = vec3(0.80, 0.80, 0.77);
+    float spec = pow(max(dot(n, h), 0.0), 90.0) * 1.4 + pow(max(dot(n, h), 0.0), 12.0) * 0.12;
+    col = alb * (0.92 * di * sh * vec3(1.0, 0.97, 0.92) + 0.07 * oc * (0.6 + 0.4 * n.y));
+    col += env(rf) * fres * oc * mix(0.35, 1.0, sh);
+    col += spec * sh * vec3(1.0, 0.98, 0.95);
+    col += LIME * glow * 2.2;
+  } else {
+    // Punto lima: brilla un poco por sí solo y tiene acabado lacado
+    float spec = pow(max(dot(n, h), 0.0), 140.0) * 2.0;
+    col = LIME * (0.42 + 0.55 * di * sh + 0.18 * (1.0 - ndv));
+    col += env(rf) * (0.06 + 0.9 * pow(1.0 - ndv, 5.0)) + spec * sh;
+  }
+  return col;
+}
+
 void main(){
-  vec2 uv = (gl_FragCoord.xy - 0.5 * r) / r.y;
+  vec2 uv = (gl_FragCoord.xy - 0.5 * r) / min(r.x, r.y) * zoom;
+  uv.y -= sy;
+  float px = zoom / min(r.x, r.y);
   HD = hd;
 
   float toPen = smoothstep(0.1, 0.2, s);
@@ -139,62 +191,57 @@ void main(){
   PIT = 0.12 + m.y * 0.18;
   SHX = -0.28 * smoothstep(0.2, 0.7, s);
 
-  vec3 L = normalize(vec3(-0.22, 0.95, 0.55));
-  vec3 kc = vec3(1.0, 0.97, 0.92);
-  float limeK = 1.5;
-
   vec3 ro = vec3(0.0, 0.35, 6.4);
   vec3 rd = normalize(vec3(uv, -2.05));
   rd.yz *= rot(0.035);
-  vec3 lime = vec3(0.776, 0.957, 0.196);
   vec3 bg = vec3(0.0012);
   vec3 col = bg;
 
   float floorY = O.y - 1.32;
   float tf = rd.y < 0.0 ? (floorY - ro.y) / rd.y : 1e9;
 
-  float d = 0.0; float hit = 0.0; float mat = 0.0; vec3 p;
-  for (int i = 0; i < 90; i++) {
+  // Raymarching con registro del punto más cercano, para suavizar el contorno
+  float d = 0.0; float hit = 0.0; float mat = 0.0; vec3 p = ro;
+  float bestR = 1e9; float bestT = 0.0; float bestM = 1.0;
+  for (int i = 0; i < 120; i++) {
     p = ro + rd * d;
     vec2 h = map(p);
-    if (h.x < 0.0012) { hit = 1.0; mat = h.y; break; }
-    d += h.x;
+    float ratio = h.x / max(d * px, 1e-4);
+    if (ratio < bestR) { bestR = ratio; bestT = d; bestM = h.y; }
+    if (h.x < 0.0003 * d) { hit = 1.0; mat = h.y; break; }
+    d += h.x * 0.95;
     if (d > 12.0 || d > tf) break;
   }
 
   vec3 dpw = toW(DP);
 
-  if (hit > 0.5 && d < tf) {
-    vec3 n = nrm(p); vec3 v = -rd;
-    float di = max(dot(n, L), 0.0);
-    float sh = shadow(p + n * 0.004, L);
-    float oc = ao(p, n);
-    float sp = pow(max(dot(reflect(-L, n), v), 0.0), 56.0);
-    float fre = pow(1.0 - max(dot(n, v), 0.0), 4.0);
-    vec3 toD = dpw - p; float dd = length(toD);
-    float glow = (1.0 - HD) * max(dot(n, toD / dd), 0.0) / (1.0 + 9.0 * dd * dd);
-    if (mat < 1.5) {
-      vec3 alb = vec3(0.86, 0.86, 0.83);
-      col = alb * (0.05 * oc + 0.95 * di * sh * kc);
-      col += alb * vec3(0.55, 0.6, 0.7) * 0.12 * oc * (0.5 + 0.5 * n.y);
-      col += sp * sh * 0.45 * kc + fre * vec3(0.22) * oc;
-      col += lime * glow * 1.6 * limeK;
-    } else {
-      col = lime * (0.5 + 0.6 * di * sh) + sp * 1.2 + fre * vec3(0.9, 1.0, 0.6) * 0.6;
-    }
-  } else if (tf < 1e8) {
+  // Fondo: suelo con sombra suave y el reflejo lima del punto
+  if (tf < 1e8) {
+    vec3 L = normalize(KEY);
     vec3 fp = ro + rd * tf;
     float sh = shadow(fp + vec3(0.0, 0.002, 0.0), L);
     float near = 1.0 - smoothstep(1.0, 10.0, tf);
     vec3 fc = vec3(0.0045) * (0.35 + 0.65 * sh);
     float pool = (1.0 - HD) * exp(-1.6 * length(fp.xz - dpw.xz));
-    fc += lime * pool * 0.05 * limeK * (1.0 + 0.4 * sin(t * 1.5));
+    fc += LIME * pool * 0.075 * (1.0 + 0.4 * sin(t * 1.5));
     col = mix(bg, fc, near * (1.0 - smoothstep(-0.25, -0.02, rd.y)));
+  }
+
+  if (hit > 0.5 && d < tf) {
+    col = shade(p, rd, mat, dpw);
+  } else if (bestR < 1.5 && bestT < tf) {
+    // Borde: mezcla parcial del objeto con el fondo (antialiasing)
+    float cov = 1.0 - smoothstep(0.0, 1.5, bestR);
+    vec3 pe = ro + rd * bestT;
+    col = mix(col, shade(pe, rd, bestM, dpw), cov);
   }
 
   vec2 q = gl_FragCoord.xy / r;
   col *= 1.0 - 0.3 * pow(length(q - 0.5) * 1.3, 2.0);
+  col = col / (1.0 + col * 0.15); // compresión suave de las luces altas
   col = pow(col, vec3(0.4545));
+  // Pequeño grano para evitar bandas en los degradados oscuros
+  col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
   gl_FragColor = vec4(col, 1.0);
 }
 `;
