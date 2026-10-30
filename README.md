@@ -67,6 +67,7 @@ public/               Favicons y logos en SVG
 - **Fuentes alojadas en la propia web** (`public/fonts`, `app/fonts.css`): no se conecta con Google, así que no hace falta banner de cookies.
 - **Vista previa al compartir** (`app/opengraph-image.tsx`), `sitemap.xml`, `robots.txt` y datos estructurados de negocio local.
 - **Página 404** propia (`app/not-found.tsx`).
+- **Para tu local: QR y NFC** (`components/LocalSection.tsx`): servicios, packs y una vista previa interactiva. El QR de la tarjeta es real y abre la carta de la demo del restaurante. Productos, precios y packs se editan en `lib/site.ts` (`extras`, `linkService`, `packs`).
 
 ## Rendimiento
 

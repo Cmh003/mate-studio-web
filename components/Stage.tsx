@@ -48,6 +48,7 @@ export default function Stage() {
           <a href="#proceso">Proceso</a>
           <a href="#demos">Demos</a>
           <a href="#precios">Precios</a>
+          <a href="#local">QR y NFC</a>
           <a href="#contacto">Contacto</a>
         </nav>
         <a href="#contacto" className="pill">

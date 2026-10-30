@@ -22,3 +22,6 @@ export function prefersReducedMotion(): boolean {
 
 // Botones de precios → preseleccionan la opción en el formulario de contacto
 export const PLAN_EVENT = "mate:plan";
+
+// Lo que viaja con el evento: la opción a marcar y, si hace falta, una frase para el mensaje
+export type PlanDetail = string | { need: string; note?: string };

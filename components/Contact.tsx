@@ -1,22 +1,29 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { plans, site } from "@/lib/site";
-import { PLAN_EVENT } from "@/lib/story";
+import { PLAN_EVENT, type PlanDetail } from "@/lib/story";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
-const needs = [...plans.map((p) => ({ id: p.id, label: p.name })), { id: "otro", label: "Aún no lo sé" }];
+const needs = [...plans.map((p) => ({ id: p.id, label: p.name })), { id: "local", label: "QR o NFC para mi local" }, { id: "otro", label: "Aún no lo sé" }];
 
 export default function Contact() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
   const [need, setNeed] = useState("");
+  const ideaRef = useRef<HTMLTextAreaElement>(null);
   const { email, whatsapp, instagram, calendar } = site.contact;
 
   // Los botones de la sección de precios preseleccionan lo que necesitas
   useEffect(() => {
-    const onPlan = (e: Event) => setNeed(String((e as CustomEvent<string>).detail || ""));
+    const onPlan = (e: Event) => {
+      const d = (e as CustomEvent<PlanDetail>).detail;
+      if (typeof d === "string") return setNeed(d);
+      setNeed(d.need);
+      const ta = ideaRef.current;
+      if (d.note && ta && !ta.value.trim()) ta.value = d.note + " ";
+    };
     window.addEventListener(PLAN_EVENT, onPlan);
     return () => window.removeEventListener(PLAN_EVENT, onPlan);
   }, []);
@@ -103,7 +110,7 @@ export default function Contact() {
           </fieldset>
           <div className="field">
             <label htmlFor="c-idea">Tu idea</label>
-            <textarea id="c-idea" name="idea" rows={4} placeholder="Tengo un negocio de… y me gustaría…" required />
+            <textarea ref={ideaRef} id="c-idea" name="idea" rows={4} placeholder="Tengo un negocio de… y me gustaría…" required />
           </div>
           <div className="field">
             <label htmlFor="c-contact">Teléfono o email</label>

@@ -61,6 +61,36 @@ export const plans: Plan[] = [
 
 export const maintenance = { price: "25", text: "Cambios, copias de seguridad, actualizaciones y dominio." };
 
+export type Extra = {
+  id: string;
+  name: string;
+  tech: "QR" | "NFC" | "QR + NFC" | "Enlace";
+  text: string;
+  price: string; // texto libre: "desde 150 €", "35 €/ud"…
+};
+
+// Servicios para locales físicos. Precios orientativos sin IVA: cámbialos a tu gusto.
+export const extras: Extra[] = [
+  { id: "carta", name: "Carta digital", tech: "QR", text: "Tu carta en el móvil del cliente, con fotos, idiomas y alérgenos. La cambias tú cuando quieras, sin reimprimir.", price: "desde 150 € + 10 €/mes" },
+  { id: "resenas", name: "Placa de reseñas", tech: "QR + NFC", text: "Para el mostrador o la mesa: el cliente acerca el móvil y se abre directamente la página para dejar su reseña en Google.", price: "35 € por placa" },
+  { id: "reservas", name: "QR de reservas", tech: "QR", text: "En la puerta o el escaparate. Reservan o piden cita aunque el local esté cerrado.", price: "desde 40 €" },
+  { id: "tarjeta", name: "Tarjeta de visita NFC", tech: "NFC", text: "Al acercarla a un móvil se guarda tu contacto o se abre tu web. Ideal para profesionales y equipos.", price: "25 € por tarjeta" },
+  { id: "wifi", name: "WiFi en la mesa", tech: "QR", text: "Tus clientes se conectan al WiFi escaneando un código, sin dictar contraseñas.", price: "5 € por unidad" },
+];
+
+export const linkService = {
+  name: "Enlaces que puedes cambiar",
+  text: "Todos los QR y NFC apuntan a una dirección tuya. Si cambias la carta o la oferta, se actualiza sin reimprimir nada, y ves cuántas veces los escanean.",
+  price: "incluido en el mantenimiento",
+};
+
+export type Pack = { id: string; name: string; price: string; items: string[] };
+
+export const packs: Pack[] = [
+  { id: "pack-restaurante", name: "Pack Restaurante", price: "650", items: ["Web para tu negocio", "Carta digital con QR", "2 placas de reseñas", "QR de WiFi para mesas"] },
+  { id: "pack-clinica", name: "Pack Clínica", price: "850", items: ["Web con reservas", "QR de citas para la puerta", "3 tarjetas de visita NFC", "1 placa de reseñas"] },
+];
+
 export type Chapter = {
   n: string;
   label: string;

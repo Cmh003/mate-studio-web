@@ -5,6 +5,7 @@ import Cursor from "@/components/Cursor";
 import DemoPicker from "@/components/DemoPicker";
 import EasterEgg from "@/components/EasterEgg";
 import Intro from "@/components/Intro";
+import LocalSection from "@/components/LocalSection";
 import Pricing from "@/components/Pricing";
 import Stage from "@/components/Stage";
 import { chapters } from "@/lib/site";
@@ -56,6 +57,7 @@ export default function Home() {
         <BrandDraw />
         <DemoPicker />
         <Pricing />
+        <LocalSection />
         <Constellation />
         <Contact />
       </main>
