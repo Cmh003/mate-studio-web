@@ -23,13 +23,18 @@ Abre http://localhost:3000
 
 ## Tus datos
 
-Todo lo editable está en **`lib/site.ts`**: dominio, email, WhatsApp, Instagram, enlace para agendar llamadas, textos de los capítulos y proyectos. Los valores marcados con `TODO` son de ejemplo.
+Todo lo editable está en **`lib/site.ts`**:
+
+- `contact`: email, WhatsApp, Instagram y enlace para agendar llamadas. **Cada canal vacío desaparece de la web**; si están todos vacíos, el contacto se hace solo por el formulario.
+- `legal`: tu nombre, NIF, dirección y email para el **aviso legal** y la **política de privacidad** (obligatorios en España). Las páginas son plantillas orientativas: revísalas antes de publicar.
+- `plans` y `maintenance`: los precios orientativos (sin IVA).
+- `chapters` y `projects`: textos de la historia y del portfolio.
 
 ## Formulario de contacto
 
 Sin configurar nada, el formulario funciona pero los mensajes solo aparecen en los logs del servidor. Para recibirlos por email:
 
-1. Crea una cuenta en https://resend.com (tiene plan gratuito) y verifica tu dominio.
+1. Crea una cuenta en https://resend.com (plan gratuito). No hace falta dominio para empezar: usa tu email personal en `CONTACT_TO`.
 2. Copia `.env.example` a `.env.local` y rellena `RESEND_API_KEY`, `CONTACT_TO` y `CONTACT_FROM`.
 3. En Vercel, añade esas mismas variables en *Settings → Environment Variables*.
 
@@ -54,6 +59,14 @@ lib/
   story.ts            Avance de la historia con el scroll
 public/               Favicons y logos en SVG
 ```
+
+## Qué más incluye
+
+- **Precios** (`components/Pricing.tsx`): al pulsar "Pedir presupuesto", el formulario se abre con esa opción marcada.
+- **Textos legales**: `/aviso-legal` y `/privacidad`, enlazados en el pie y en el formulario (con casilla de aceptación).
+- **Fuentes alojadas en la propia web** (`public/fonts`, `app/fonts.css`): no se conecta con Google, así que no hace falta banner de cookies.
+- **Vista previa al compartir** (`app/opengraph-image.tsx`), `sitemap.xml`, `robots.txt` y datos estructurados de negocio local.
+- **Página 404** propia (`app/not-found.tsx`).
 
 ## Rendimiento
 

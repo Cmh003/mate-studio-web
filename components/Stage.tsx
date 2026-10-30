@@ -47,7 +47,7 @@ export default function Stage() {
         <nav className="nav hide-sm" aria-label="Principal">
           <a href="#proceso">Proceso</a>
           <a href="#demos">Demos</a>
-          <a href="#trabajos">Trabajos</a>
+          <a href="#precios">Precios</a>
           <a href="#contacto">Contacto</a>
         </nav>
         <a href="#contacto" className="pill">

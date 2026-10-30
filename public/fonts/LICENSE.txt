@@ -1,0 +1,4 @@
+Las tipografías de esta carpeta (Space Grotesk, JetBrains Mono, Manrope, Fraunces,
+Cormorant Garamond y Archivo) se distribuyen bajo la SIL Open Font License 1.1.
+https://openfontlicense.org — Copyright de sus respectivos autores.
+Se han recortado a caracteres latinos y convertido a WOFF2 para cargar más rápido.

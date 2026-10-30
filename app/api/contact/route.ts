@@ -19,6 +19,7 @@ export async function POST(req: Request) {
 
   const idea = clean(body.idea, 4000);
   const contact = clean(body.contact, 200);
+  const need = clean(body.need, 100);
   if (!idea || !contact) {
     return NextResponse.json({ ok: false, error: "Faltan datos" }, { status: 400 });
   }
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
   const from = process.env.CONTACT_FROM ?? "Mate Studio <onboarding@resend.dev>";
 
   if (!key || !to) {
-    console.log("[contacto] Nuevo mensaje (configura RESEND_API_KEY y CONTACT_TO para recibirlo por email):", { contact, idea });
+    console.log("[contacto] Nuevo mensaje (configura RESEND_API_KEY y CONTACT_TO para recibirlo por email):", { contact, need, idea });
     return NextResponse.json({ ok: true });
   }
 
@@ -38,9 +39,9 @@ export async function POST(req: Request) {
     body: JSON.stringify({
       from,
       to: [to],
-      subject: `Nuevo proyecto desde la web — ${contact}`,
+      subject: `Nuevo proyecto desde la web${need ? ` (${need})` : ""} — ${contact}`,
       reply_to: contact.includes("@") ? contact : undefined,
-      html: `<p><strong>Contacto:</strong> ${escape(contact)}</p><p><strong>Idea:</strong></p><p>${escape(idea).replace(/\n/g, "<br>")}</p>`,
+      html: `<p><strong>Contacto:</strong> ${escape(contact)}</p>${need ? `<p><strong>Necesita:</strong> ${escape(need)}</p>` : ""}<p><strong>Idea:</strong></p><p>${escape(idea).replace(/\n/g, "<br>")}</p>`,
     }),
   });
 

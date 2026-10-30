@@ -1,14 +1,25 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { site } from "@/lib/site";
+import { FormEvent, useEffect, useState } from "react";
+import { plans, site } from "@/lib/site";
+import { PLAN_EVENT } from "@/lib/story";
 
 type Status = "idle" | "sending" | "sent" | "error";
+
+const needs = [...plans.map((p) => ({ id: p.id, label: p.name })), { id: "otro", label: "Aún no lo sé" }];
 
 export default function Contact() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
+  const [need, setNeed] = useState("");
   const { email, whatsapp, instagram, calendar } = site.contact;
+
+  // Los botones de la sección de precios preseleccionan lo que necesitas
+  useEffect(() => {
+    const onPlan = (e: Event) => setNeed(String((e as CustomEvent<string>).detail || ""));
+    window.addEventListener(PLAN_EVENT, onPlan);
+    return () => window.removeEventListener(PLAN_EVENT, onPlan);
+  }, []);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,22 +30,35 @@ export default function Contact() {
       setError("Cuéntame la idea y cómo contactarte.");
       return;
     }
+    if (!data.privacy) {
+      setStatus("error");
+      setError("Para poder responderte, acepta la política de privacidad.");
+      return;
+    }
     setStatus("sending");
     setError("");
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, need: needs.find((n) => n.id === data.need)?.label ?? "" }),
       });
       if (!res.ok) throw new Error();
       setStatus("sent");
+      setNeed("");
       form.reset();
     } catch {
       setStatus("error");
-      setError("No se ha podido enviar. Escríbeme por WhatsApp o email.");
+      setError(email ? `No se ha podido enviar. Escríbeme a ${email}.` : "No se ha podido enviar. Inténtalo de nuevo en unos minutos.");
     }
   };
+
+  const channels = [
+    calendar ? { href: calendar, label: "Agendar una llamada", ext: true } : null,
+    email ? { href: `mailto:${email}`, label: email, ext: false } : null,
+    whatsapp ? { href: `https://wa.me/${whatsapp}`, label: "WhatsApp", ext: true } : null,
+    instagram ? { href: instagram, label: "Instagram", ext: true } : null,
+  ].filter(Boolean) as { href: string; label: string; ext: boolean }[];
 
   return (
     <section id="contacto" className="section contact">
@@ -47,26 +71,36 @@ export default function Contact() {
             tu punto<span className="lime">?</span>
           </h2>
           <p className="lead">Cuéntame tu idea, aunque sea pequeña. Te respondo en menos de 24 horas con una propuesta y un precio cerrado.</p>
-          <div className="pills">
-            {calendar ? (
-              <a href={calendar} target="_blank" rel="noopener noreferrer" className="pill pill-lime">
-                Agendar una llamada
-              </a>
-            ) : null}
-            <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" className={calendar ? "pill" : "pill pill-lime"}>
-              WhatsApp
-            </a>
-            <a href={`mailto:${email}`} className="pill">
-              {email}
-            </a>
-            <a href={instagram} target="_blank" rel="noopener noreferrer" className="pill">
-              Instagram
-            </a>
-          </div>
+          {channels.length ? (
+            <div className="pills">
+              {channels.map((c, i) => (
+                <a key={c.href} href={c.href} className={i === 0 ? "pill pill-lime" : "pill"} {...(c.ext ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+                  {c.label}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <ul className="steps-list">
+              <li><span className="mono lime">1</span> Me cuentas tu idea en el formulario.</li>
+              <li><span className="mono lime">2</span> Te respondo en menos de 24 horas.</li>
+              <li><span className="mono lime">3</span> Te envío una propuesta con precio cerrado.</li>
+            </ul>
+          )}
         </div>
 
         <form className="reveal card" onSubmit={onSubmit} noValidate>
-          <span className="mono small muted">O déjame tu idea por escrito</span>
+          <span className="mono small muted">Cuéntame tu idea</span>
+          <fieldset className="need">
+            <legend>¿Qué necesitas?</legend>
+            <div className="need-options">
+              {needs.map((n) => (
+                <label key={n.id} className={need === n.id ? "need-opt on" : "need-opt"}>
+                  <input type="radio" name="need" value={n.id} checked={need === n.id} onChange={() => setNeed(n.id)} />
+                  {n.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <div className="field">
             <label htmlFor="c-idea">Tu idea</label>
             <textarea id="c-idea" name="idea" rows={4} placeholder="Tengo un negocio de… y me gustaría…" required />
@@ -76,6 +110,16 @@ export default function Contact() {
             <input id="c-contact" name="contact" type="text" placeholder="Para responderte" autoComplete="email" required />
           </div>
           <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hp" aria-hidden="true" />
+          <label className="check">
+            <input type="checkbox" name="privacy" value="si" required />
+            <span>
+              He leído y acepto la <a href="/privacidad">política de privacidad</a>.
+            </span>
+          </label>
+          <p className="legal-note">
+            Responsable: {site.legal.owner}. Uso tus datos solo para responder a tu mensaje y no los cedo a nadie. Puedes acceder a ellos, corregirlos o
+            borrarlos cuando quieras. Más información en la <a href="/privacidad">política de privacidad</a>.
+          </p>
           <button type="submit" className="pill pill-lime tall" disabled={status === "sending"}>
             {status === "sending" ? "Enviando…" : "Enviar"}
           </button>
@@ -87,8 +131,13 @@ export default function Contact() {
       </div>
 
       <footer className="footer mono tiny">
-        <span>© {new Date().getFullYear()} {site.name} · Hecho a mano en Leganés</span>
-        <span>Pista: haz doble clic en cualquier sitio</span>
+        <span>
+          © {new Date().getFullYear()} {site.name} · Hecho a mano en Leganés
+        </span>
+        <nav className="footer-links" aria-label="Legal">
+          <a href="/aviso-legal">Aviso legal</a>
+          <a href="/privacidad">Privacidad</a>
+        </nav>
       </footer>
     </section>
   );

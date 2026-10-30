@@ -19,3 +19,6 @@ export function setEggActive(active: boolean) {
 export function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
+
+// Botones de precios → preseleccionan la opción en el formulario de contacto
+export const PLAN_EVENT = "mate:plan";

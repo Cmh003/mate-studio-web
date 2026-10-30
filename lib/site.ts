@@ -3,17 +3,63 @@
 
 export const site = {
   name: "Mate Studio",
-  url: "https://matepunto.studio", // TODO: tu dominio definitivo
+  // Dominio definitivo. Mientras no lo tengas, la web usa sola la dirección de Vercel.
+  url: "https://matepunto.studio", // TODO
   city: "Leganés, Madrid",
   description:
     "Estudio web en Leganés. Diseño y desarrollo webs a medida que convierten una idea en una marca que se recuerda.",
   contact: {
-    email: "hola@matepunto.studio", // TODO
-    whatsapp: "34600000000", // TODO: número con prefijo, sin + ni espacios
-    instagram: "https://instagram.com/matestudio", // TODO
-    calendar: "", // TODO opcional: enlace de Calendly/Cal.com para agendar llamadas
+    // Cada canal que dejes vacío ("") desaparece de la web.
+    email: "", // TODO: tu email profesional cuando tengas dominio (p. ej. hola@tudominio.com)
+    whatsapp: "", // número con prefijo, sin + ni espacios (p. ej. 34600000000)
+    instagram: "", // enlace completo a tu perfil
+    calendar: "", // enlace de Calendly/Cal.com para agendar llamadas
+  },
+  // Datos para el aviso legal y la política de privacidad (obligatorios en España).
+  legal: {
+    owner: "[TU NOMBRE Y APELLIDOS]", // TODO
+    nif: "[TU NIF]", // TODO
+    address: "[TU DIRECCIÓN POSTAL], Leganés (Madrid)", // TODO
+    email: "[EMAIL DE CONTACTO PARA TEMAS LEGALES]", // TODO
   },
 };
+
+export type Plan = {
+  id: string;
+  name: string;
+  price: string;
+  forWho: string;
+  features: string[];
+  featured?: boolean;
+};
+
+// Precios orientativos. Cámbialos a lo que quieras cobrar.
+export const plans: Plan[] = [
+  {
+    id: "web",
+    name: "Web para tu negocio",
+    price: "450",
+    forWho: "Bares, talleres, clínicas o tiendas que necesitan estar en Google y que les llamen.",
+    features: ["Hasta 5 secciones", "Adaptada a móvil", "Formulario de contacto", "Ficha de Google y mapa", "Lista en 2–3 semanas"],
+  },
+  {
+    id: "reservas",
+    name: "Web con reservas",
+    price: "750",
+    forWho: "Negocios que dan citas o mesas y quieren dejar de hacerlo por teléfono.",
+    features: ["Todo lo de la web para tu negocio", "Reservas online por día y hora", "Avisos por email de cada reserva", "Panel para ver tu agenda"],
+    featured: true,
+  },
+  {
+    id: "tienda",
+    name: "Tienda online",
+    price: "1.200",
+    forWho: "Marcas que quieren vender sus productos por internet.",
+    features: ["Catálogo y fichas de producto", "Carrito y pago con tarjeta o Apple Pay", "Gestión de pedidos y stock", "Envíos y devoluciones"],
+  },
+];
+
+export const maintenance = { price: "25", text: "Cambios, copias de seguridad, actualizaciones y dominio." };
 
 export type Chapter = {
   n: string;

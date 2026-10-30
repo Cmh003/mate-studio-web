@@ -2,15 +2,29 @@
 
 import { useEffect, useState } from "react";
 
+const KEY = "mate-intro-visto";
+
 // Pantalla de carga: el punto lima respira mientras sube el contador.
+// Solo se ve la primera vez en cada visita; al volver a la portada no se repite.
 export default function Intro() {
   const [pct, setPct] = useState(0);
   const [phase, setPhase] = useState<"loading" | "leaving" | "gone">("loading");
 
   useEffect(() => {
-    // Basado en el tiempo real, no en ticks: así dura lo mismo aunque el equipo vaya cargado
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem(KEY) === "1";
+      sessionStorage.setItem(KEY, "1");
+    } catch {
+      /* sin almacenamiento: se muestra igual */
+    }
+    if (seen || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setPhase("gone");
+      return;
+    }
+    // Basado en el tiempo real: dura lo mismo aunque el equipo vaya cargado
     const start = performance.now();
-    const id = window.setInterval(() => setPct(Math.min(100, Math.round(((performance.now() - start) / 1300) * 100))), 50);
+    const id = window.setInterval(() => setPct(Math.min(100, Math.round(((performance.now() - start) / 900) * 100))), 40);
     return () => window.clearInterval(id);
   }, []);
 
@@ -20,7 +34,7 @@ export default function Intro() {
 
   useEffect(() => {
     if (phase !== "leaving") return;
-    const id = window.setTimeout(() => setPhase("gone"), 1000);
+    const id = window.setTimeout(() => setPhase("gone"), 800);
     return () => window.clearTimeout(id);
   }, [phase]);
 
