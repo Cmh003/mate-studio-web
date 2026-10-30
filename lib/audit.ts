@@ -173,3 +173,74 @@ export const SAMPLE = {
     brand: { status: "warn", note: "El logo de la web no es el del toldo" },
   } as Answers,
 };
+
+// ---------- Google PageSpeed Insights ----------
+export type Checks = { https?: boolean; viewport?: boolean; title?: boolean; meta?: boolean };
+
+export function normalizeUrl(raw: string): string | null {
+  const s = raw.trim();
+  if (!s) return null;
+  try {
+    const u = new URL(/^https?:\/\//i.test(s) ? s : `https://${s}`);
+    if (!["http:", "https:"].includes(u.protocol) || !u.hostname.includes(".")) return null;
+    return u.toString();
+  } catch {
+    return null;
+  }
+}
+
+export function psiEndpoint(url: string, key?: string): string {
+  const api = new URL("https://www.googleapis.com/pagespeedonline/v5/runPagespeed");
+  api.searchParams.set("url", url);
+  api.searchParams.set("strategy", "mobile");
+  api.searchParams.set("locale", "es");
+  for (const c of ["performance", "seo", "accessibility", "best-practices"]) api.searchParams.append("category", c);
+  if (key) api.searchParams.set("key", key);
+  return api.toString();
+}
+
+type PsiAudit = { score: number | null; numericValue?: number };
+export type PsiResponse = {
+  lighthouseResult?: { finalUrl?: string; categories?: Record<string, { score: number | null }>; audits?: Record<string, PsiAudit> };
+  error?: { code?: number; message?: string };
+};
+
+export function parsePsi(data: PsiResponse, target: string): { metrics: Metrics; checks: Checks; finalUrl: string } {
+  const lh = data.lighthouseResult;
+  const cat = (k: string) => {
+    const s = lh?.categories?.[k]?.score;
+    return typeof s === "number" ? Math.round(s * 100) : null;
+  };
+  const pass = (k: string) => {
+    const s = lh?.audits?.[k]?.score;
+    return typeof s === "number" ? s >= 0.9 : undefined;
+  };
+  const lcpMs = lh?.audits?.["largest-contentful-paint"]?.numericValue;
+  const finalUrl = lh?.finalUrl ?? target;
+  return {
+    metrics: {
+      performance: cat("performance"),
+      seo: cat("seo"),
+      accessibility: cat("accessibility"),
+      bestPractices: cat("best-practices"),
+      lcp: typeof lcpMs === "number" ? Math.round(lcpMs / 100) / 10 : null,
+    },
+    checks: {
+      https: finalUrl.startsWith("https://") && pass("is-on-https") !== false,
+      viewport: pass("viewport"),
+      title: pass("document-title"),
+      meta: pass("meta-description"),
+    },
+    finalUrl,
+  };
+}
+
+// Traduce los errores de Google a algo entendible
+export function psiError(status: number, data: PsiResponse | null): string {
+  const msg = data?.error?.message ?? "";
+  if (status === 429 || /quota/i.test(msg)) return "Google ha limitado las consultas por hoy. Espera un rato o añade PAGESPEED_API_KEY en Vercel.";
+  if (/FAILED_DOCUMENT_REQUEST|ERRORED_DOCUMENT_REQUEST|DNS|NO_FCP|unable to resolve/i.test(msg)) return "Google no ha podido abrir esa web. Revisa la dirección o prueba con www. delante.";
+  if (/NOT_HTML/i.test(msg)) return "Esa dirección no es una página web.";
+  if (status === 400) return "Google no acepta esa dirección. Escríbela completa, por ejemplo https://minegocio.es";
+  return `Google no ha podido analizarla${msg ? `: ${msg.slice(0, 140)}` : ""}.`;
+}

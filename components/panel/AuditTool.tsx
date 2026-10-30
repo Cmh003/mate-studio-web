@@ -7,12 +7,17 @@ import {
   allItems,
   answersFromMetrics,
   emptyMetrics,
+  normalizeUrl,
+  parsePsi,
+  psiEndpoint,
+  psiError,
   scoreOf,
   topFixes,
   verdict,
   type Answers,
   type Business,
   type Metrics,
+  type PsiResponse,
   type Status,
 } from "@/lib/audit";
 import { site } from "@/lib/site";
@@ -73,20 +78,35 @@ export default function AuditTool({ example }: { example: boolean }) {
     setAnswers((a) => ({ ...a, [id]: { status: a[id]?.status ?? "na", note: a[id]?.note ?? "", ...patch } }));
 
   const analyze = async () => {
-    if (!business.url) {
-      setError("Escribe primero la dirección de la web.");
+    const target = normalizeUrl(business.url);
+    if (!target) {
+      setError("Escribe la dirección completa, por ejemplo minegocio.es");
       return;
     }
     setBusy(true);
     setError("");
     try {
-      const res = await fetch("/api/panel/audit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: business.url }) });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "No se ha podido analizar");
-      setMetrics(json.metrics);
-      setAnswers((a) => ({ ...a, ...answersFromMetrics(json.metrics, json.checks) }));
+      // 1) Con PAGESPEED_API_KEY en Vercel, analiza el servidor (más cupo)
+      let result: ReturnType<typeof parsePsi> | null = null;
+      const srv = await fetch("/api/panel/audit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: target }) }).catch(() => null);
+      if (srv && srv.status !== 501) {
+        const json = await srv.json().catch(() => ({}));
+        if (!srv.ok) throw new Error(json.error ?? "No se ha podido analizar");
+        result = json;
+      } else {
+        // 2) Sin clave: se pregunta a Google directamente desde tu navegador
+        const res = await fetch(psiEndpoint(target), { signal: AbortSignal.timeout(120_000) });
+        const data = (await res.json().catch(() => null)) as PsiResponse | null;
+        if (!res.ok || !data?.lighthouseResult) throw new Error(psiError(res.status, data));
+        result = parsePsi(data, target);
+      }
+      const r = result as ReturnType<typeof parsePsi>;
+      setMetrics(r.metrics);
+      setAnswers((a) => ({ ...a, ...answersFromMetrics(r.metrics, r.checks) }));
+      setBusiness((b) => ({ ...b, url: r.finalUrl.replace(/\/$/, "") }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se ha podido analizar");
+      const timeout = e instanceof DOMException && (e.name === "TimeoutError" || e.name === "AbortError");
+      setError(timeout ? "Google ha tardado demasiado. Vuelve a intentarlo." : e instanceof Error ? e.message : "No se ha podido analizar");
     }
     setBusy(false);
   };
