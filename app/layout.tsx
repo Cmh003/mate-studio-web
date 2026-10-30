@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Analytics from "@/components/Analytics";
 import { site } from "@/lib/site";
 import { baseUrl } from "@/lib/url";
 import "./fonts.css";
@@ -55,7 +56,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preload" href="/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossOrigin="" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

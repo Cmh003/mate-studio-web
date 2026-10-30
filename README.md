@@ -38,6 +38,19 @@ Sin configurar nada, el formulario funciona pero los mensajes solo aparecen en l
 2. Copia `.env.example` a `.env.local` y rellena `RESEND_API_KEY`, `CONTACT_TO` y `CONTACT_FROM`.
 3. En Vercel, añade esas mismas variables en *Settings → Environment Variables*.
 
+## Panel privado: estadísticas, solicitudes y auditorías
+
+En `/panel` tienes tu informe mensual (visitantes, de dónde llegan, qué botones pulsan, solicitudes del formulario) y la plantilla de auditoría para captar clientes (`/panel/auditoria`, con un ejemplo en `/panel/auditoria?ejemplo=1`).
+
+Solo puedes entrar tú: no hay registro ni más usuarios; pide contraseña **y** código de una app de autenticación; bloquea tras 5 intentos fallidos; la sesión dura 12 h; y si faltan las claves, el panel ni siquiera existe (da 404).
+
+1. **Base de datos.** En Vercel, abre el proyecto → *Storage* → *Create Database* → **Neon** → región **Frankfurt (eu-central-1)** → conéctala al proyecto. Esto añade `DATABASE_URL` sola.
+2. **Claves.** En tu ordenador, dentro del proyecto: `npm install` y luego `npm run panel:setup`. Elige una contraseña larga y escanea el QR con Google Authenticator (o similar).
+3. Copia las 4 líneas que imprime (`SESSION_SECRET`, `ADMIN_PASSWORD_HASH`, `ADMIN_TOTP_SECRET`, `CRON_SECRET`) en Vercel → *Settings → Environment Variables* y vuelve a desplegar.
+4. Entra en `https://tu-web/panel/login`.
+
+El día 1 de cada mes a las 8:00 (UTC) Vercel te envía por email el informe del mes anterior (necesita Resend configurado) y borra los datos antiguos. Las estadísticas no usan cookies ni guardan IPs, así que no necesitas banner de cookies.
+
 ## Publicar en Vercel
 
 1. Sube la carpeta a un repositorio de GitHub.

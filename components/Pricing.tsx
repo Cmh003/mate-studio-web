@@ -32,7 +32,7 @@ export default function Pricing() {
                 <li key={f}>{f}</li>
               ))}
             </ul>
-            <a href="#contacto" className={p.featured ? "pill pill-lime tall" : "pill tall"} onClick={choose(p.id)}>
+            <a href="#contacto" className={p.featured ? "pill pill-lime tall" : "pill tall"} onClick={choose(p.id)} data-track={`precio:${p.id}`}>
               Pedir presupuesto
             </a>
           </article>

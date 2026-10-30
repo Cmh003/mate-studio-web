@@ -228,7 +228,7 @@ export default function BrandDraw() {
           </label>
           <input id="name-in" ref={inputRef} type="text" maxLength={22} placeholder="Peluquería Lola, Bar Pepe…" autoComplete="off" />
         </div>
-        <button type="submit" className="pill pill-lime tall">
+        <button type="submit" className="pill pill-lime tall" data-track="dibujar_marca">
           Dibújala
         </button>
       </form>

@@ -112,7 +112,7 @@ export default function LocalPreview({ extras, qrSvg }: { extras: Extra[]; qrSvg
           <button type="button" className="pill" onClick={() => run(active)}>
             Repetir
           </button>
-          <a href="#contacto" className="pill pill-lime" onClick={ask}>
+          <a href="#contacto" className="pill pill-lime" onClick={ask} data-track={`local:${current.id}`}>
             Lo quiero para mi local
           </a>
         </div>

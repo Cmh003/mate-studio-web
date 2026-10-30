@@ -51,7 +51,7 @@ export default function Stage() {
           <a href="#local">QR y NFC</a>
           <a href="#contacto">Contacto</a>
         </nav>
-        <a href="#contacto" className="pill">
+        <a href="#contacto" className="pill" data-track="cta_cabecera">
           Cuéntame tu idea
         </a>
       </header>

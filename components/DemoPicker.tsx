@@ -73,6 +73,7 @@ export default function DemoPicker() {
             aria-controls="demo-panel"
             className="demo-tab"
             onClick={() => pick(d.slug)}
+            data-track={`demo:${d.slug}`}
           >
             <strong>{d.label}</strong>
             <span>{d.sector}</span>
@@ -99,7 +100,7 @@ export default function DemoPicker() {
       </div>
 
       <div className="demo-actions">
-        <a href={`/demos/${active}`} className="pill pill-lime tall">
+        <a href={`/demos/${active}`} className="pill pill-lime tall" data-track="demo_completa">
           Abrir {current.business} a pantalla completa
         </a>
         <a href="#contacto" className="pill tall">

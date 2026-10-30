@@ -50,7 +50,7 @@ export default async function LocalSection() {
                 <li key={it}>{it}</li>
               ))}
             </ul>
-            <PackButton need="local" note={`Me interesa el ${p.name}.`} />
+            <PackButton need="local" note={`Me interesa el ${p.name}.`} trackAs={p.id} />
           </article>
         ))}
       </div>

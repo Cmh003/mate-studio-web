@@ -96,6 +96,7 @@ export default function Constellation() {
             className={p.ghost ? "star ghost" : "star"}
             style={{ left: p.position.left, top: p.position.top, animationDelay: `${-i * 3}s` }}
             onClick={show(p)}
+            data-track={`proyecto:${p.id}`}
             aria-haspopup="dialog"
           >
             <span className="core" aria-hidden="true" />

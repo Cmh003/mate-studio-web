@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { db, ensureSchema, hasDb } from "@/lib/db";
 
 // Recibe el formulario de contacto. Si hay RESEND_API_KEY configurada, lo envía
 // por email con Resend (https://resend.com). Si no, lo deja en los logs del servidor.
@@ -22,6 +23,16 @@ export async function POST(req: Request) {
   const need = clean(body.need, 100);
   if (!idea || !contact) {
     return NextResponse.json({ ok: false, error: "Faltan datos" }, { status: 400 });
+  }
+
+  // Guarda la solicitud para verla en tu panel (si hay base de datos)
+  if (hasDb()) {
+    try {
+      await ensureSchema();
+      await db()`insert into leads (need, contact, idea) values (${need || null}, ${contact}, ${idea})`;
+    } catch (err) {
+      console.error("[contacto] no se pudo guardar en la base de datos", err);
+    }
   }
 
   const key = process.env.RESEND_API_KEY;

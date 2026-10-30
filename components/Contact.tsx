@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { plans, site } from "@/lib/site";
 import { PLAN_EVENT, type PlanDetail } from "@/lib/story";
+import { track } from "@/lib/track";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
@@ -52,6 +53,7 @@ export default function Contact() {
       });
       if (!res.ok) throw new Error();
       setStatus("sent");
+      track("formulario_enviado");
       setNeed("");
       form.reset();
     } catch {
