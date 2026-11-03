@@ -238,6 +238,7 @@ export function parsePsi(data: PsiResponse, target: string): { metrics: Metrics;
 // Traduce los errores de Google a algo entendible
 export function psiError(status: number, data: PsiResponse | null): string {
   const msg = data?.error?.message ?? "";
+  if (/limit 'Queries per day'/.test(msg) && /"0"|of 0\b/.test(JSON.stringify(data))) return "Google ya no deja analizar sin clave. Falta añadir PAGESPEED_API_KEY en Vercel (es gratis).";
   if (status === 429 || /quota/i.test(msg)) return "Google ha limitado las consultas por hoy. Espera un rato o añade PAGESPEED_API_KEY en Vercel.";
   if (/FAILED_DOCUMENT_REQUEST|ERRORED_DOCUMENT_REQUEST|DNS|NO_FCP|unable to resolve/i.test(msg)) return "Google no ha podido abrir esa web. Revisa la dirección o prueba con www. delante.";
   if (/NOT_HTML/i.test(msg)) return "Esa dirección no es una página web.";
